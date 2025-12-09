@@ -1,0 +1,268 @@
+<!--
+  valorant-buy-menu.html
+  Single-page, GitHub-ready webpage that mimics an in-game weapon-buy menu (for Valorant-style weapons).
+  Clean, simple, responsive. Copy to index.html and push to GitHub Pages.
+-->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SpikeBuy — Valorant Weapon Shop (Demo)</title>
+  <style>
+    :root{
+      --bg:#0f1724; /* deep navy */
+      --card:#0b1320;
+      --muted:#9aa4b2;
+      --accent:#ff5c5c; /* spicy accent */
+      --glass: rgba(255,255,255,0.03);
+      --radius:12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      background: linear-gradient(180deg,var(--bg), #07101a);
+      color:#e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      padding:28px;
+    }
+
+    .wrap{
+      max-width:1000px;margin:0 auto;display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start
+    }
+
+    header.site{
+      grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;margin-bottom:6px
+    }
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#162835,#1b2d3f);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .logo span{color:var(--accent);font-size:18px}
+    h1{font-size:18px;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    /* sidebar */
+    .sidebar{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:16px;border-radius:var(--radius);box-shadow:0 6px 16px rgba(2,6,23,0.6)}
+    .search{display:flex;gap:8px;margin-bottom:14px}
+    .search input{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);background:var(--glass);color:inherit}
+    .filters{display:flex;flex-direction:column;gap:8px}
+    .filter-btn{display:inline-block;padding:8px 10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer;font-size:13px;color:var(--muted)}
+    .filter-btn.active{background:linear-gradient(90deg,#112233, #153045);color:#e6eef6;border-color:rgba(255,255,255,0.07)}
+
+    /* main area */
+    .maincard{background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);padding:18px;border-radius:var(--radius);box-shadow:0 6px 22px rgba(2,6,23,0.6)}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .cart{display:flex;align-items:center;gap:12px}
+    .cart .count{background:var(--accent);color:#111;padding:6px 8px;border-radius:999px;font-weight:700}
+
+    /* grid */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+    .weapon{background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.06));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);display:flex;gap:10px;align-items:center}
+    .thumb{width:72px;height:52px;border-radius:8px;background:linear-gradient(135deg,#0d2530,#112a3a);display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700}
+    .meta{flex:1}
+    .meta h3{margin:0;font-size:15px}
+    .meta p{margin:6px 0 0 0;font-size:13px;color:var(--muted)}
+    .buy{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .price{font-weight:800}
+    .btn{padding:8px 10px;border-radius:10px;background:transparent;border:1px solid rgba(255,255,255,0.06);cursor:pointer}
+    .btn.primary{background:var(--accent);color:#111;border:0}
+
+    /* cart drawer (small) */
+    .cart-drawer{position:fixed;right:20px;bottom:20px;background:linear-gradient(180deg,#071726,#07131b);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);min-width:240px;box-shadow:0 10px 30px rgba(2,6,23,0.6)}
+    .cart-drawer h4{margin:0 0 8px 0}
+    .cart-item{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--muted);padding:6px 0}
+    .cart-total{border-top:1px dashed rgba(255,255,255,0.03);padding-top:8px;margin-top:8px;display:flex;justify-content:space-between}
+
+    /* footer note */
+    .note{grid-column:1/-1;margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* responsive */
+    @media (max-width:880px){
+      .wrap{grid-template-columns:1fr;}
+      .sidebar{order:2}
+      .maincard{order:1}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="site">
+      <div class="brand">
+        <div class="logo"><span>SP</span></div>
+        <div>
+          <h1>SpikeBuy — weapon shop (demo)</h1>
+          <p class="lead">Quickly preview & "buy" Valorant-style weapons for loadout practice.</p>
+        </div>
+      </div>
+
+      <div class="cart" aria-hidden>
+        <div style="text-align:right">
+          <div style="font-size:12px;color:var(--muted)">Your Credits</div>
+          <div style="font-weight:800">$12,000</div>
+        </div>
+        <div class="count" id="cartCount">0</div>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="search">
+        <input id="search" placeholder="Search weapon name..." />
+        <button class="filter-btn" id="clearSearch">✕</button>
+      </div>
+      <div style="margin-bottom:12px">
+        <strong style="display:block;margin-bottom:8px;color:var(--muted)">Categories</strong>
+        <div class="filters" id="categories">
+          <button class="filter-btn active" data-cat="all">All</button>
+          <button class="filter-btn" data-cat="sidearm">Sidearms</button>
+          <button class="filter-btn" data-cat="rifle">Rifles</button>
+          <button class="filter-btn" data-cat="sniper">Snipers</button>
+          <button class="filter-btn" data-cat="smg">SMGs</button>
+          <button class="filter-btn" data-cat="shotgun">Shotguns</button>
+        </div>
+      </div>
+
+      <div>
+        <strong style="display:block;margin-bottom:8px;color:var(--muted)">Quick tips</strong>
+        <ul style="margin:0;padding-left:18px;color:var(--muted);font-size:13px">
+          <li>Toggle categories to filter.</li>
+          <li>Click Buy to add to cart (demo only).</li>
+          <li>This page is a static demo for loadout planning.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="maincard">
+      <div class="toolbar">
+        <div style="font-weight:700">Weapons</div>
+        <div style="color:var(--muted);font-size:13px">Showing <span id="shownCount">0</span> items</div>
+      </div>
+
+      <div class="grid" id="weaponGrid">
+        <!-- weapons rendered by JS -->
+      </div>
+
+      <div class="note">This is only a fan-made demo page for practicing in-game buy decisions. Not affiliated with Riot Games.</div>
+    </main>
+
+  </div>
+
+  <!-- small cart drawer -->
+  <div class="cart-drawer" id="cartDrawer" style="display:none">
+    <h4>Cart</h4>
+    <div id="cartItems"></div>
+    <div class="cart-total"><div>Total</div><div id="cartTotal">$0</div></div>
+    <div style="margin-top:8px;text-align:right"><button class="btn" id="clearCart">Clear</button> <button class="btn primary" id="checkout">Checkout</button></div>
+  </div>
+
+  <script>
+    // Sample weapon data (game-style names/prices). Images are placeholders.
+    const WEAPONS = [
+      {id:1,name:'Classic',cat:'sidearm',price:0,desc:'Starter pistol'},
+      {id:2,name:'Ghost',cat:'sidearm',price:500,desc:'Silenced sidearm'},
+      {id:3,name:'Sheriff',cat:'sidearm',price:800,desc:'High damage sidearm'},
+      {id:4,name:'Stinger',cat:'smg',price:1000,desc:'Fast SMG'},
+      {id:5,name:'Spectre',cat:'smg',price:1600,desc:'Balanced SMG'},
+      {id:6,name:'Bucky',cat:'shotgun',price:900,desc:'Close-range pump shotgun'},
+      {id:7,name:'Judge',cat:'shotgun',price:1500,desc:'Auto shotgun'},
+      {id:8,name:'Vandal',cat:'rifle',price:2900,desc:'Full-power rifle'},
+      {id:9,name:'Phantom',cat:'rifle',price:2900,desc:'Silenced rifle'},
+      {id:10,name:'Marshal',cat:'sniper',price:1100,desc:'Lightweight sniper'},
+      {id:11,name:'Operator',cat:'sniper',price:4500,desc:'High-power sniper'}
+    ];
+
+    // state
+    let cart = [];
+    let activeCat = 'all';
+    let searchTerm = '';
+
+    const grid = document.getElementById('weaponGrid');
+    const shownCountEl = document.getElementById('shownCount');
+    const cartCountEl = document.getElementById('cartCount');
+    const cartDrawer = document.getElementById('cartDrawer');
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartTotalEl = document.getElementById('cartTotal');
+
+    function renderWeapons(){
+      const filtered = WEAPONS.filter(w => (activeCat==='all' || w.cat===activeCat) && w.name.toLowerCase().includes(searchTerm));
+      grid.innerHTML = '';
+      shownCountEl.textContent = filtered.length;
+      filtered.forEach(w => {
+        const el = document.createElement('div'); el.className='weapon';
+        el.innerHTML = `
+          <div class="thumb">${w.name.charAt(0)}</div>
+          <div class="meta">
+            <h3>${w.name}</h3>
+            <p>${w.desc}</p>
+          </div>
+          <div class="buy">
+            <div class="price">$${w.price}</div>
+            <div>
+              <button class="btn" onclick="viewDetails(${w.id})">Details</button>
+              <button class="btn primary" onclick="addToCart(${w.id})">Buy</button>
+            </div>
+          </div>
+        `;
+        grid.appendChild(el);
+      });
+    }
+
+    function viewDetails(id){
+      const w = WEAPONS.find(x=>x.id===id);
+      alert(`${w.name} — ${w.desc}\nPrice: $${w.price}`);
+    }
+
+    function addToCart(id){
+      const w = WEAPONS.find(x=>x.id===id);
+      cart.push(w);
+      updateCartUI();
+    }
+
+    function updateCartUI(){
+      cartCountEl.textContent = cart.length;
+      if(cart.length===0){ cartDrawer.style.display='none'; return; }
+      cartDrawer.style.display='block';
+      cartItemsEl.innerHTML='';
+      let total = 0;
+      cart.forEach((c,idx)=>{
+        total += c.price;
+        const row = document.createElement('div'); row.className='cart-item';
+        row.innerHTML = `<div>${c.name}</div><div>$${c.price} <button class='btn' style='margin-left:8px' onclick='removeFromCart(${idx})'>✕</button></div>`;
+        cartItemsEl.appendChild(row);
+      });
+      cartTotalEl.textContent = '$' + total;
+    }
+
+    function removeFromCart(idx){ cart.splice(idx,1); updateCartUI(); }
+    function clearCart(){ cart.length=0; updateCartUI(); }
+
+    // wire filters
+    document.getElementById('categories').addEventListener('click', e=>{
+      const btn = e.target.closest('button'); if(!btn) return;
+      Array.from(document.querySelectorAll('.filter-btn')).forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      activeCat = btn.dataset.cat;
+      renderWeapons();
+    });
+
+    // search
+    document.getElementById('search').addEventListener('input', e=>{ searchTerm = e.target.value.toLowerCase(); renderWeapons(); });
+    document.getElementById('clearSearch').addEventListener('click', ()=>{ document.getElementById('search').value=''; searchTerm=''; renderWeapons(); });
+
+    // cart actions
+    document.getElementById('clearCart').addEventListener('click', ()=>{ if(confirm('Clear cart?')) clearCart(); });
+    document.getElementById('checkout').addEventListener('click', ()=>{ alert('Checkout simulated. This is a demo page — no real purchases.'); clearCart(); });
+
+    // initial render
+    renderWeapons();
+    updateCartUI();
+
+    // expose a couple functions for inline handlers
+    window.addToCart = addToCart;
+    window.viewDetails = viewDetails;
+    window.removeFromCart = removeFromCart;
+  </script>
+</body>
+</html>
